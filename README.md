@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="D-Voyager-noBG-Transparent.png" alt="D-Voyager Logo" width="250"/>
+</p>
+
 # D-Voyager Front-End (Ionic Angular)
 
 Frontend aplikasi pemesanan tiket shuttle **D-Voyager** yang dibangun menggunakan **Ionic Angular** dan **Capacitor** untuk mendukung platform Web dan Android (Mobile).
