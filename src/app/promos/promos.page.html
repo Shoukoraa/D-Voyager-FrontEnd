@@ -1,0 +1,67 @@
+<ion-content class="custom-bg">
+  <div class="modern-header">
+    <ion-icon name="pricetag" class="bg-icon"></ion-icon>
+    <h1>Promo & Penawaran</h1>
+    <p>Temukan promo menarik untuk perjalanan Anda</p>
+  </div>
+
+  <div class="promos-container">
+    
+    <!-- Loading State -->
+    <div *ngIf="isLoading" style="text-align: center; padding: 32px 0;">
+      <ion-spinner name="crescent" color="warning"></ion-spinner>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!isLoading && vouchers.length === 0" style="text-align: center; padding: 48px 24px; color: #9ca3af; font-weight: 700;">
+      <ion-icon name="pricetags-outline" style="font-size: 48px; margin-bottom: 8px;"></ion-icon>
+      <p>Tidak ada promo yang tersedia saat ini.</p>
+    </div>
+    
+    <!-- Voucher Cards list -->
+    <div class="promo-card animate-fade-in" *ngFor="let voucher of vouchers">
+      <div class="promo-image" [style.background]="voucher.theme_color || '#FFC107'" style="color: white; display: flex; align-items: center; justify-content: center; font-size: 32px;">
+        <ion-icon [name]="voucher.icon || 'gift'"></ion-icon>
+      </div>
+      <div class="promo-content">
+        <div class="promo-badge" [style.background]="'rgba(' + hexToRgb(voucher.theme_color || '#FFC107') + ', 0.15)'" [style.color]="voucher.theme_color || '#FFC107'">
+          {{ voucher.badge_text || 'PROMO' }}
+        </div>
+        <h3>{{ voucher.title }}</h3>
+        <p>{{ voucher.description }}</p>
+        <span class="expiry">Berakhir: {{ getFormattedExpiry(voucher.expiry_date) }}</span>
+      </div>
+    </div>
+
+  </div>
+</ion-content>
+
+<!-- Custom Bottom Navigation -->
+<ion-footer class="custom-footer ion-no-border">
+  <div class="nav-bar material-nav" [style.--slide-distance]="slideDistance">
+    <div class="nav-item" routerLink="/home" routerDirection="root">
+      <div class="icon-container">
+        <ion-icon name="home-outline"></ion-icon>
+      </div>
+      <span>Beranda</span>
+    </div>
+    <div class="nav-item" routerLink="/tickets" routerDirection="root">
+      <div class="icon-container">
+        <ion-icon name="ticket-outline"></ion-icon>
+      </div>
+      <span>Pesanan</span>
+    </div>
+    <div class="nav-item active" routerLink="/promos" routerDirection="root">
+      <div class="icon-container">
+        <ion-icon name="pricetag"></ion-icon>
+      </div>
+      <span>Promo</span>
+    </div>
+    <div class="nav-item" routerLink="/profile" routerDirection="root">
+      <div class="icon-container">
+        <ion-icon name="person-outline"></ion-icon>
+      </div>
+      <span>Profil</span>
+    </div>
+  </div>
+</ion-footer>

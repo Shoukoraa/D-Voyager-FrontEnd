@@ -1,0 +1,381 @@
+<ion-content class="custom-bg">
+  <div class="modern-header">
+    <ion-icon name="ticket" class="bg-icon"></ion-icon>
+    <h1>Pesanan Saya</h1>
+    <p>Daftar tiket perjalanan Anda</p>
+    
+    <div class="segment-container">
+      <ion-segment [(ngModel)]="selectedTab" value="aktif" mode="ios">
+        <ion-segment-button value="aktif">
+          <ion-label>Aktif</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="riwayat">
+          <ion-label>Riwayat</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+    </div>
+  </div>
+
+  <div class="tickets-container">
+    <div class="payment-success-hero" [class.leaving]="isPaymentSuccessLeaving" *ngIf="showPaymentSuccessMascot" aria-live="polite">
+      <div class="success-copy">
+        <span>Pembayaran diproses</span>
+        <h2>Yeay, pesanan Anda sudah masuk!</h2>
+        <p>Tiket aktif akan muncul di bawah setelah sistem memperbarui status pembayaran.</p>
+      </div>
+      <img src="assets/PembayaranBerhasil.png" alt="Maskot pembayaran berhasil" class="success-mascot">
+    </div>
+    
+    <div class="skeleton-loader" *ngIf="isLoading">
+      <div class="ticket-card skeleton-card" *ngFor="let i of [1,2,3]">
+        <div class="ticket-header">
+          <div class="shimmer" style="width: 80px; height: 24px; border-radius: 12px;"></div>
+          <div class="shimmer" style="width: 100px; height: 16px;"></div>
+        </div>
+        <div class="route-info" style="margin: 20px 0;">
+          <div class="shimmer" style="width: 100px; height: 24px;"></div>
+          <div class="shimmer" style="width: 30px; height: 30px; border-radius: 50%;"></div>
+          <div class="shimmer" style="width: 100px; height: 24px;"></div>
+        </div>
+        <div class="datetime-info">
+          <div class="shimmer" style="width: 120px; height: 16px;"></div>
+          <div class="shimmer" style="width: 120px; height: 16px;"></div>
+        </div>
+        <div class="ticket-footer">
+          <div class="shimmer" style="width: 80px; height: 30px;"></div>
+          <div class="shimmer" style="width: 80px; height: 30px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Ticket Card -->
+    <ng-container *ngIf="selectedTickets.length > 0 && !isLoading">
+      <div class="ticket-card active-ticket" *ngFor="let ticket of selectedTickets" [ngStyle]="{'border-top': '4px solid ' + getStatusColor(ticket.status)}">
+        <div class="ticket-header">
+          <div class="status-badge" [ngStyle]="{'background': getStatusColor(ticket.status), 'color': '#fff'}">
+            {{ ticket.status === 'on_the_way' ? 'On The Way' : (ticket.status | titlecase) }}
+          </div>
+          <div class="booking-id">ID: #{{ ticket.id }}</div>
+        </div>
+        
+        <div class="route-info">
+          <div class="location-group">
+            <h4>{{ ticket.schedule?.route?.origin?.name || 'Asal' }}</h4>
+          </div>
+          <div class="divider">
+            <ion-icon name="arrow-forward"></ion-icon>
+          </div>
+          <div class="location-group right">
+            <h4>{{ ticket.schedule?.route?.destination?.name || 'Tujuan' }}</h4>
+          </div>
+        </div>
+        
+        <div class="datetime-info">
+          <div class="dt-item">
+            <ion-icon name="calendar-outline"></ion-icon>
+            <span>{{ ticket.schedule?.departure_time | date:'EEE, dd MMM yyyy' }}</span>
+          </div>
+          <div class="dt-item">
+            <ion-icon name="time-outline"></ion-icon>
+            <span>{{ ticket.schedule?.departure_time | date:'HH:mm' }} - {{ ticket.schedule?.arrival_time | date:'HH:mm' }}</span>
+          </div>
+        </div>
+
+        <div class="ticket-footer">
+          <div class="seat-info">
+            <span>Kursi</span>
+            <strong>
+              <span *ngFor="let seat of ticket.seats; let last = last">
+                {{ seat.seat_number }}{{ !last ? ', ' : '' }}
+              </span>
+            </strong>
+          </div>
+          <div class="seat-info">
+            <span>Total Bayar</span>
+            <strong>Rp {{ ticket.total_price | number }}</strong>
+          </div>
+        </div>
+        
+        <div class="ticket-actions" *ngIf="ticket.status === 'booked'" style="padding: 0 15px 15px; display: flex; gap: 10px;">
+          <ion-button fill="outline" color="danger" (click)="cancelBooking(ticket)" style="flex: 1; margin: 0; --border-radius: 8px;">
+            Batalkan
+          </ion-button>
+          <ion-button expand="block" color="warning" (click)="continuePayment(ticket)" style="flex: 2; margin: 0; --border-radius: 8px;">
+            Bayar
+            <ion-icon name="arrow-forward" slot="end"></ion-icon>
+          </ion-button>
+        </div>
+
+        <div class="ticket-actions" *ngIf="ticket.status === 'paid' || ticket.status === 'on_the_way'" style="padding: 0 15px 15px; display: flex; gap: 10px;">
+          <ion-button fill="outline" color="primary" (click)="openChat(ticket)" style="flex: 1; margin: 0; --border-radius: 8px;">
+            <ion-icon name="chatbubbles" slot="start"></ion-icon>
+            Chat
+          </ion-button>
+          <ion-button expand="block" color="warning" (click)="openTracking(ticket)" style="flex: 1; margin: 0; --border-radius: 8px;">
+            <ion-icon name="map" slot="start"></ion-icon>
+            Lacak Supir
+          </ion-button>
+        </div>
+
+        <div class="review-summary" *ngIf="ticket.review">
+          <div>
+            <span>Rating Anda</span>
+            <strong>
+              <ion-icon *ngFor="let star of ratingOptions" [name]="star <= ticket.review.rating ? 'star' : 'star-outline'"></ion-icon>
+            </strong>
+          </div>
+          <p *ngIf="ticket.review.comment">{{ ticket.review.comment }}</p>
+        </div>
+
+        <div class="ticket-actions" *ngIf="canRate(ticket)">
+          <ion-button expand="block" color="primary" (click)="openRating(ticket)">
+            <ion-icon name="star" slot="start"></ion-icon>
+            Beri Rating
+          </ion-button>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="selectedTickets.length === 0 && !isLoading">
+      <div class="empty-icon-wrapper">
+        <ion-icon name="bus-outline"></ion-icon>
+      </div>
+      <h3 *ngIf="selectedTab === 'aktif'">Belum Ada Pesanan Aktif</h3>
+      <h3 *ngIf="selectedTab === 'riwayat'">Belum Ada Riwayat</h3>
+      <p *ngIf="selectedTab === 'aktif'">Anda belum memiliki tiket perjalanan yang aktif. Yuk, mulai perjalanan pertama Anda bersama kami!</p>
+      <p *ngIf="selectedTab === 'riwayat'">Riwayat perjalanan akan muncul setelah pesanan selesai.</p>
+      <ion-button *ngIf="selectedTab === 'aktif'" class="mega-search-btn" routerLink="/home">
+        Cari Shuttle Sekarang
+        <ion-icon name="arrow-forward"></ion-icon>
+      </ion-button>
+    </div>
+
+  </div>
+
+  <!-- Chat Room Modal -->
+  <ion-modal [isOpen]="isChatOpen" (didDismiss)="closeChat()" class="customer-chat-modal">
+    <ng-template>
+      <ion-header class="ion-no-border modal-header">
+        <ion-toolbar class="modal-hero-toolbar">
+          <ion-buttons slot="start">
+            <ion-button class="modal-back-btn" (click)="closeChat()">
+              <ion-icon name="arrow-back"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+          <ion-title>Chat dengan Driver</ion-title>
+          <ion-icon name="chatbubbles" class="modal-hero-icon"></ion-icon>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content class="chat-room-content">
+        <div class="message-list">
+          <div class="chat-empty-state" *ngIf="chatMessages.length === 0 && !isTyping">
+            <div class="empty-chat-icon">
+              <ion-icon name="chatbubbles-outline"></ion-icon>
+            </div>
+            <h3>Belum Ada Pesan</h3>
+            <p>Kirim pesan pertama untuk menghubungi driver perjalanan Anda.</p>
+          </div>
+
+          <div *ngFor="let msg of chatMessages" class="message-wrapper" [class.sent]="msg.sender_type === 'customer'" [class.received]="msg.sender_type === 'driver'">
+            <div class="message-bubble">
+              <p>{{ msg.message }}</p>
+              <span class="message-time">{{ msg.created_at | date:'HH:mm' }}</span>
+            </div>
+          </div>
+
+          <!-- Typing Indicator -->
+          <div class="typing-indicator" *ngIf="isTyping">
+            <div class="dots-container">
+              <span class="dot"></span>
+              <span class="dot"></span>
+              <span class="dot"></span>
+            </div>
+            <span class="typing-text">Driver sedang mengetik...</span>
+          </div>
+        </div>
+      </ion-content>
+
+      <ion-footer class="ion-no-border">
+        <ion-toolbar class="chat-toolbar">
+          <div class="chat-input-wrapper">
+            <ion-textarea 
+              [(ngModel)]="newMessage" 
+              (input)="sendTypingEvent()"
+              placeholder="Ketik pesan..." 
+              auto-grow="true" 
+              rows="1" 
+              max-rows="4">
+            </ion-textarea>
+            <ion-button fill="clear" (click)="sendMessage()" [disabled]="!newMessage.trim()">
+              <ion-icon name="send" slot="icon-only" color="primary"></ion-icon>
+            </ion-button>
+          </div>
+        </ion-toolbar>
+      </ion-footer>
+    </ng-template>
+  </ion-modal>
+
+  <!-- Rating Modal -->
+  <ion-modal [isOpen]="isRatingOpen" (didDismiss)="closeRating()" class="rating-modal">
+    <ng-template>
+      <ion-header class="ion-no-border">
+        <ion-toolbar>
+          <ion-title>Rating Driver</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closeRating()" [disabled]="isSubmittingRating">
+              <ion-icon name="close" slot="icon-only"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content class="rating-content">
+        <div class="rating-trip" *ngIf="ratingTicket">
+          <span>Booking #{{ ratingTicket.id }}</span>
+          <strong>{{ ratingTicket.schedule?.driver?.user?.name || 'Driver' }}</strong>
+          <p>{{ ratingTicket.schedule?.route?.origin?.name || 'Asal' }} -> {{ ratingTicket.schedule?.route?.destination?.name || 'Tujuan' }}</p>
+          <small>Nilai driver berdasarkan pengalaman perjalanan ini.</small>
+        </div>
+
+        <div class="star-picker">
+          <button type="button" *ngFor="let star of ratingOptions" (click)="setRating(star)" [class.active]="star <= selectedRating" [attr.aria-label]="'Rating ' + star">
+            <ion-icon [name]="star <= selectedRating ? 'star' : 'star-outline'"></ion-icon>
+          </button>
+        </div>
+
+        <ion-item lines="none" class="comment-box">
+          <ion-textarea
+            [(ngModel)]="ratingComment"
+            placeholder="Tulis komentar singkat (opsional)"
+            auto-grow="true"
+            rows="4"
+            maxlength="1000">
+          </ion-textarea>
+        </ion-item>
+      </ion-content>
+
+      <ion-footer class="ion-no-border">
+        <ion-toolbar>
+          <ion-button expand="block" color="primary" (click)="submitRating()" [disabled]="isSubmittingRating || selectedRating === 0">
+            <ion-spinner *ngIf="isSubmittingRating" name="crescent" slot="start"></ion-spinner>
+            Kirim Rating
+          </ion-button>
+        </ion-toolbar>
+      </ion-footer>
+    </ng-template>
+  </ion-modal>
+
+  <!-- Cancel Modal -->
+  <ion-modal [isOpen]="isCancelModalOpen" (didDismiss)="closeCancelModal()" class="cancel-modal">
+    <ng-template>
+      <div class="cancel-content">
+        <div class="cancel-icon-wrapper">
+          <ion-icon name="alert-circle"></ion-icon>
+        </div>
+        <h3>Batalkan Pesanan?</h3>
+        <p>Apakah Anda yakin ingin membatalkan pesanan ini? Tindakan ini tidak dapat dikembalikan.</p>
+        
+        <div class="cancel-actions">
+          <ion-button expand="block" color="light" class="btn-keep" (click)="closeCancelModal()">
+            Kembali
+          </ion-button>
+          <ion-button expand="block" color="danger" class="btn-confirm" (click)="confirmCancel()">
+            Ya, Batalkan
+          </ion-button>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+
+  <!-- Tracking Modal -->
+  <ion-modal [isOpen]="isTrackingOpen" (didDismiss)="closeTracking()" class="customer-tracking-modal">
+    <ng-template>
+      <ion-header class="ion-no-border modal-header">
+        <ion-toolbar class="modal-hero-toolbar">
+          <ion-buttons slot="start">
+            <ion-button class="modal-back-btn" (click)="closeTracking()">
+              <ion-icon name="arrow-back"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+          <ion-title>Lacak Perjalanan</ion-title>
+          <ion-icon name="map" class="modal-hero-icon"></ion-icon>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content class="ion-padding tracking-content">
+        <div class="route-info-card">
+          <div class="route-card-icon">
+            <ion-icon name="navigate"></ion-icon>
+          </div>
+          <div class="route-card-text">
+            <span>Rute Perjalanan</span>
+            <h4>{{ trackingTicket?.schedule?.route?.origin?.name }} -> {{ trackingTicket?.schedule?.route?.destination?.name }}</h4>
+            <p>
+              Supir: <b>{{ trackingTicket?.schedule?.driver?.user?.name || 'Driver' }}</b> ({{ trackingTicket?.schedule?.vehicle?.plate_number }})
+            </p>
+          </div>
+        </div>
+
+        <div class="map-wrapper" [class.fullscreen-map-wrapper]="isMapFullscreen">
+          <div id="customer-map" [class.fullscreen-map]="isMapFullscreen"></div>
+          
+          <!-- Map Style Switcher (Floating on Map) -->
+          <div class="map-style-switcher">
+            <button (click)="setMapStyle('streets')" [class.active-style]="currentStyle === 'streets'">Terang</button>
+            <button (click)="setMapStyle('dark')" [class.active-style]="currentStyle === 'dark'">Malam</button>
+            <button (click)="setMapStyle('satellite')" [class.active-style]="currentStyle === 'satellite'">Satelit</button>
+          </div>
+
+          <!-- Fullscreen Toggle Button (Floating on Map) -->
+          <button class="map-toggle-btn" (click)="toggleMapFullscreen()" aria-label="Toggle Fullscreen Map">
+            <ion-icon [name]="isMapFullscreen ? 'contract-outline' : 'expand-outline'"></ion-icon>
+          </button>
+        </div>
+
+        <div class="map-controls-fixed" *ngIf="isMapFullscreen">
+          <button class="map-toggle-btn" (click)="toggleMapFullscreen()" aria-label="Toggle Fullscreen Map">
+            <ion-icon name="contract-outline"></ion-icon>
+          </button>
+          <div class="map-style-switcher">
+            <button (click)="setMapStyle('streets')" [class.active-style]="currentStyle === 'streets'">Terang</button>
+            <button (click)="setMapStyle('dark')" [class.active-style]="currentStyle === 'dark'">Malam</button>
+            <button (click)="setMapStyle('satellite')" [class.active-style]="currentStyle === 'satellite'">Satelit</button>
+          </div>
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+</ion-content>
+
+<!-- Custom Bottom Navigation -->
+<ion-footer class="custom-footer ion-no-border">
+  <div class="nav-bar material-nav" [style.--slide-distance]="slideDistance">
+    <div class="nav-item" routerLink="/home" routerDirection="root">
+      <div class="icon-container">
+        <ion-icon name="home-outline"></ion-icon>
+      </div>
+      <span>Beranda</span>
+    </div>
+    <div class="nav-item active" routerLink="/tickets" routerDirection="root">
+      <div class="icon-container">
+        <ion-icon name="ticket"></ion-icon>
+      </div>
+      <span>Pesanan</span>
+    </div>
+    <div class="nav-item" routerLink="/promos" routerDirection="root">
+      <div class="icon-container">
+        <ion-icon name="pricetag-outline"></ion-icon>
+      </div>
+      <span>Promo</span>
+    </div>
+    <div class="nav-item" routerLink="/profile" routerDirection="root">
+      <div class="icon-container">
+        <ion-icon name="person-outline"></ion-icon>
+      </div>
+      <span>Profil</span>
+    </div>
+  </div>
+</ion-footer>

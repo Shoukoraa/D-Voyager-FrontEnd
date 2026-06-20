@@ -1,0 +1,321 @@
+ion-toolbar {
+  --background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  --color: #1e293b;
+  
+  ion-title {
+    font-weight: 800;
+    font-size: 16px;
+  }
+}
+
+.btn-end {
+  --border-radius: 999px;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: none;
+  height: 28px;
+}
+
+.chat-status-bar {
+  background: #fff;
+  padding: 12px 18px;
+  border-bottom: 1px solid #f1f5f9;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+
+  .bot-info {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .avatar-container {
+    position: relative;
+    width: 46px;
+    height: 46px;
+    
+    .bot-avatar {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      border: 2px solid #f1f5f9;
+      background: #fff;
+      object-fit: cover;
+      object-position: center 28%;
+      display: block;
+    }
+    
+    .online-dot {
+      position: absolute;
+      bottom: 2px;
+      right: 2px;
+      width: 10px;
+      height: 10px;
+      background: #10b981;
+      border-radius: 50%;
+      border: 2px solid #fff;
+    }
+  }
+
+  .bot-details {
+    .bot-name {
+      font-size: 14px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .bot-status {
+      font-size: 11px;
+      font-weight: 600;
+      color: #10b981;
+      &.text-red { color: #ef4444; }
+    }
+  }
+}
+
+.chat-bg {
+  --background: #f8fafc;
+}
+
+.chat-container {
+  padding: 18px 18px 38px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Animations */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.msg-anim {
+  animation: fadeSlideUp 0.3s ease both;
+  display: flex;
+  width: 100%;
+}
+
+.msg-left {
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.msg-right {
+  justify-content: flex-end;
+}
+
+.msg-center { align-self: center; max-width: 85%; }
+
+.sender-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  
+  &.bot {
+    border: 1px solid #dbeafe;
+    background: #fff;
+    object-fit: cover;
+    object-position: center 28%;
+    display: block;
+  }
+  
+  &.admin {
+    background: linear-gradient(135deg, #10b981, #059669);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+  }
+}
+
+.msg-group {
+  display: flex;
+  flex-direction: column;
+  max-width: calc(100% - 44px);
+  flex-grow: 1;
+  
+  .sender-name {
+    font-size: 10px;
+    font-weight: 700;
+    color: #059669;
+    margin-bottom: 4px;
+    margin-left: 2px;
+  }
+}
+
+.bubble-left {
+  width: fit-content;
+  max-width: 90%;
+  padding: 12px 16px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  border-radius: 16px 16px 16px 6px;
+  color: white;
+  
+  &.bg-bot {
+    background: linear-gradient(135deg, #fef08a, #facc15);
+    color: #1e293b;
+    border: 1px solid #fde047;
+  }
+  &.bg-admin {
+    background: linear-gradient(135deg, #10b981, #059669);
+  }
+  
+  strong, b { font-weight: 700; }
+}
+
+.bubble-right {
+  width: fit-content;
+  background: #fff;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+  max-width: 100%;
+  padding: 12px 16px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  border-radius: 16px 16px 6px 16px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+
+.bubble-system {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  padding: 6px 14px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 999px;
+  text-align: center;
+}
+
+.options-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: calc(100% - 44px);
+  margin-top: 8px;
+  margin-left: 44px;
+  align-self: flex-start;
+  max-width: 380px;
+  animation: fadeSlideUp 0.3s ease both;
+  
+  .option-btn {
+    background: #fff;
+    border: 1px solid #fde047;
+    color: #ca8a04;
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: left;
+    transition: all 0.2s;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    
+    &:active {
+      background: #fef9c3;
+      border-color: #eab308;
+    }
+    
+    &.btn-outline {
+      background: transparent;
+      border: 1px dashed #fcd34d;
+      color: #78350f;
+      text-align: center;
+      margin-top: 4px;
+      
+      &:active {
+        background: rgba(254, 240, 138, 0.2);
+      }
+    }
+  }
+}
+
+/* Typing Dots */
+.typing-bubble { padding: 12px 16px; }
+.typing-dots {
+  display: flex;
+  gap: 4px;
+  
+  span {
+    width: 6px;
+    height: 6px;
+    background: #1e293b;
+    border-radius: 50%;
+    animation: typing 1.4s infinite ease-in-out both;
+    opacity: 0.6;
+    
+    &:nth-child(1) { animation-delay: -0.32s; }
+    &:nth-child(2) { animation-delay: -0.16s; }
+  }
+}
+@keyframes typing {
+  0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
+  40% { transform: scale(1); opacity: 1; }
+}
+
+/* Footer Input */
+.input-toolbar {
+  --background: #fff;
+  --border-width: 1px 0 0 0;
+  --border-color: #f1f5f9;
+  --min-height: 74px;
+  padding: 10px 14px calc(16px + env(safe-area-inset-bottom));
+}
+
+.input-container {
+  display: flex;
+  align-items: center;
+  background: #f1f5f9;
+  border-radius: 999px;
+  min-height: 52px;
+  padding: 4px 7px 4px 4px;
+  border: 1px solid #e2e8f0;
+  
+  .chat-input {
+    --padding-start: 16px;
+    --padding-end: 10px;
+    font-size: 14px;
+  }
+  
+  .btn-send {
+    --color: #1e293b;
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin: 0;
+    box-shadow: 0 2px 4px rgba(245, 158, 11, 0.2);
+    
+    ion-icon {
+      font-size: 16px;
+      margin-left: -2px;
+    }
+  }
+}
+
+/* Timestamp Styles */
+.msg-time-left {
+  font-size: 9px;
+  color: #94a3b8;
+  margin-top: 4px;
+  margin-left: 4px;
+  align-self: flex-start;
+}
+
+.msg-time-right {
+  font-size: 9px;
+  color: #94a3b8;
+  margin-top: 4px;
+  margin-right: 4px;
+  align-self: flex-end;
+}
+
+.msg-group-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  max-width: calc(100% - 44px);
+  width: 100%;
+}

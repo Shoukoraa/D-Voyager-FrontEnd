@@ -1,0 +1,106 @@
+<ion-header class="ion-no-border custom-header">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home" icon="arrow-back" text=""></ion-back-button>
+    </ion-buttons>
+    
+    <div class="header-title">
+      <div class="route">
+        <strong>{{ routeOrigin }}</strong>
+        <ion-icon name="arrow-forward"></ion-icon>
+        <strong>{{ routeDest }}</strong>
+      </div>
+      <span class="count">{{ schedules.length }} Jadwal Tersedia</span>
+    </div>
+
+    <div class="header-date" slot="end">
+      <div class="date-circle">
+        <span>{{ searchDate | date:'dd' }}</span>
+        <small>{{ searchDate | date:'MMM' }}</small>
+      </div>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="custom-bg">
+
+  <!-- Schedule List (Physical Ticket UI) -->
+  <div class="schedule-list">
+    <div
+      class="ticket-card"
+      *ngFor="let schedule of schedules"
+      role="button"
+      tabindex="0"
+      (click)="openSchedule(schedule.id)">
+      
+      <!-- Left Cutout -->
+      <div class="cutout left"></div>
+      <!-- Right Cutout -->
+      <div class="cutout right"></div>
+
+      <div class="ticket-main">
+        <div class="operator-row">
+          <div class="brand">
+            <ion-icon name="bus"></ion-icon>
+            <strong>D-Voyager Shuttle</strong>
+          </div>
+        </div>
+
+        <div class="time-route-row">
+          <div class="time-box">
+            <h2>{{ schedule.departure_time | date:'HH:mm' }}</h2>
+            <p>{{ schedule.route?.origin?.name }}</p>
+          </div>
+          
+          <div class="travel-line">
+            <span>{{ schedule.route?.distance_km | number:'1.0-0' }} KM</span>
+            <div class="dotted-line">
+              <ion-icon name="bus-outline"></ion-icon>
+            </div>
+          </div>
+          
+          <div class="time-box text-right">
+            <h2>{{ schedule.arrival_time ? (schedule.arrival_time | date:'HH:mm') : 'Belum diatur' }}</h2>
+            <p>{{ schedule.route?.destination?.name }}</p>
+          </div>
+        </div>
+
+        <div class="ticket-details">
+          <div class="detail-row">
+            <div class="detail-item">
+              <ion-icon name="bus-outline"></ion-icon>
+              <span>{{ getVehicleCategoryLabel(schedule) }} ({{ getVehicleTypeLabel(schedule) }})</span>
+            </div>
+            <div class="detail-item">
+              <ion-icon name="people-outline"></ion-icon>
+              <span>Kapasitas: {{ getVehicleCapacity(schedule) }} kursi</span>
+            </div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-item">
+              <ion-icon name="person-outline"></ion-icon>
+              <span>Supir: <strong>{{ schedule.driver?.user?.name || 'Belum Ditugaskan' }}</strong></span>
+            </div>
+            <div class="detail-item">
+              <ion-icon name="card-outline"></ion-icon>
+              <span>No. Polisi: <strong>{{ schedule.vehicle?.plate_number || 'Belum Ada' }}</strong></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ticket Tear Line -->
+      <div class="ticket-divider"></div>
+
+      <!-- Ticket Stub (Price) -->
+      <div class="ticket-stub">
+        <span class="label">Harga Tiket</span>
+        <div class="price-container">
+          <strong class="price">Rp {{ (schedule.price || schedule.route?.price) | number:'1.0-0' }}</strong>
+          <span class="toll-tag">Termasuk Tol</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</ion-content>

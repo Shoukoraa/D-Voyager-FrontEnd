@@ -1,0 +1,282 @@
+<ion-content class="custom-bg">
+  
+  <!-- Diagonal Header Background (Not curved) -->
+  <div class="header-diagonal">
+    <div class="top-bar">
+      <div class="greeting">
+        <p>Halo,</p>
+        <h2>{{ userName }} 👋</h2>
+      </div>
+      <a *ngIf="isLoggedIn" class="profile-avatar" routerLink="/profile" aria-label="Buka profil pengguna">
+        <img *ngIf="profilePhotoUrl; else avatarFallback" [src]="profilePhotoUrl" alt="Foto profil akun" referrerpolicy="no-referrer">
+        <ng-template #avatarFallback>
+          <ion-icon name="person"></ion-icon>
+        </ng-template>
+      </a>
+      <a *ngIf="!isLoggedIn" routerLink="/login" style="font-size: 13px; font-weight: 800; background: #FBC02D; color: #1E1E1E; padding: 8px 16px; border-radius: 20px; text-decoration: none; box-shadow: 0 4px 10px rgba(251,192,45,0.3); flex-shrink: 0;">
+        Login
+      </a>
+    </div>
+    
+    <div class="hero-text">
+      <h1>Mau pergi ke mana hari ini?</h1>
+    </div>
+  </div>
+
+  <!-- Main Content Wrapper -->
+  <div class="home-container">
+    
+    <!-- Floating Frameless Search Section -->
+    <div class="search-section">
+      
+      <div class="route-group" [class.swapping]="isSwapping">
+        <div class="input-floating origin-wrapper" (click)="openAsalModal()">
+          <div class="dot origin"></div>
+          <div class="input-content">
+            <span class="label">Keberangkatan</span>
+            <span class="value-text" [class.placeholder]="!asalId">
+              {{ getAsalName() || 'Pilih kota asal' }}
+            </span>
+          </div>
+          <div class="chevron">
+            <ion-icon name="chevron-forward-outline"></ion-icon>
+          </div>
+        </div>
+
+        <div class="route-divider">
+          <div class="line"></div>
+          <div class="swap-fab" (click)="swapRoutes()">
+            <ion-icon name="swap-vertical"></ion-icon>
+          </div>
+        </div>
+
+        <div class="input-floating destination-wrapper" (click)="openTujuanModal()">
+          <div class="dot destination"></div>
+          <div class="input-content">
+            <span class="label">Tujuan</span>
+            <span class="value-text" [class.placeholder]="!tujuanId">
+              {{ getTujuanName() || 'Pilih kota tujuan' }}
+            </span>
+          </div>
+          <div class="chevron">
+            <ion-icon name="chevron-forward-outline"></ion-icon>
+          </div>
+        </div>
+      </div>
+
+      <div class="date-group-wrapper">
+        <div class="date-picker-trigger" id="open-date-picker">
+          <div class="calendar-pill">
+            <div class="calendar-pill-header">{{ getCalendarMonth() }}</div>
+            <div class="calendar-pill-body">{{ getCalendarDay() }}</div>
+          </div>
+          <div class="date-info">
+            <span class="date-label">Tanggal Perjalanan</span>
+            <span class="date-value">{{ getFormattedDate() }}</span>
+          </div>
+          <div class="date-chevron">
+            <ion-icon name="chevron-down-outline"></ion-icon>
+          </div>
+        </div>
+
+        <div class="quick-date-container">
+          <button type="button" class="quick-date-btn" [class.active]="isToday()" (click)="setToday(); $event.stopPropagation()">
+            <ion-icon name="today-outline" *ngIf="isToday()"></ion-icon>
+            Hari Ini
+          </button>
+          <button type="button" class="quick-date-btn" [class.active]="isTomorrow()" (click)="setTomorrow(); $event.stopPropagation()">
+            <ion-icon name="calendar-outline" *ngIf="isTomorrow()"></ion-icon>
+            Besok
+          </button>
+        </div>
+
+        <ion-modal trigger="open-date-picker" [keepContentsMounted]="true" class="custom-datetime-modal">
+          <ng-template>
+            <ion-datetime 
+              id="datetime" 
+              presentation="date" 
+              [(ngModel)]="tanggal"
+              (ngModelChange)="onTanggalChange($event)"
+              [min]="minTravelDate"
+              [showDefaultButtons]="true"
+              doneText="Pilih"
+              cancelText="Batal"
+              class="premium-datetime">
+            </ion-datetime>
+          </ng-template>
+        </ion-modal>
+      </div>
+
+      <button class="mega-search-btn" (click)="searchShuttle()">
+        CARI SHUTTLE
+        <ion-icon name="arrow-forward"></ion-icon>
+      </button>
+
+    </div>
+
+    <!-- Promo Section (Horizontal Cards) -->
+    <div class="promo-section">
+      <div class="section-header">
+        <h3>Penawaran Eksklusif</h3>
+      </div>
+      
+      <!-- Skeleton Promos -->
+      <div class="promo-scroller" *ngIf="isLoadingPromos">
+        <div class="promo-ticket" style="border: none; background: #f3f4f6;" *ngFor="let i of [1,2]">
+          <div class="shimmer" style="width: 40px; height: 40px; border-radius: 12px; margin-right: 15px;"></div>
+          <div class="promo-text">
+            <div class="shimmer" style="width: 120px; height: 18px; margin-bottom: 8px;"></div>
+            <div class="shimmer" style="width: 80px; height: 14px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Real Promos -->
+      <div class="promo-scroller" *ngIf="!isLoadingPromos && promos.length > 0">
+        <div class="promo-ticket" *ngFor="let promo of promos" [style.borderLeftColor]="promo.color">
+          <div class="ticket-cutout top"></div>
+          <div class="ticket-cutout bottom"></div>
+          
+          <div class="promo-icon" [style.color]="promo.color">
+            <ion-icon [name]="promo.icon"></ion-icon>
+          </div>
+          <div class="promo-text">
+            <h4>{{ promo.title }}</h4>
+            <p>{{ promo.subtitle }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Pilih Kota Asal -->
+  <ion-modal 
+    [isOpen]="isAsalModalOpen" 
+    (didDismiss)="isAsalModalOpen = false" 
+    mode="ios"
+    animated="true"
+    class="custom-modal">
+    <ng-template>
+      <ion-header class="ion-no-border">
+        <button type="button" class="modal-grip" aria-label="Tutup pilih keberangkatan" (click)="closeAsalModal()"></button>
+        <ion-toolbar class="modal-toolbar">
+          <ion-title>Pilih Keberangkatan</ion-title>
+        </ion-toolbar>
+        <div class="search-bar-wrapper">
+          <ion-searchbar 
+            placeholder="Cari kota asal..." 
+            [(ngModel)]="asalSearch"
+            (ngModelChange)="updateAsalFilter($event)"
+            class="modal-searchbar"
+            inputmode="search"
+            debounce="120"
+            animated="true">
+          </ion-searchbar>
+        </div>
+      </ion-header>
+      <ion-content class="ion-padding-top modal-scroll-content" [scrollY]="true">
+        <ion-list lines="none" class="location-list">
+          <ion-item button *ngFor="let loc of filteredAsalLocations; trackBy: trackByLocationId" (click)="selectAsal(loc)" class="location-item" detail="false">
+            <div class="location-icon-wrapper">
+              <ion-icon name="location"></ion-icon>
+            </div>
+            <ion-label>
+              <h3>{{ loc.name }}</h3>
+              <p>Terminal / Titik Jemput</p>
+            </ion-label>
+            <ion-icon name="checkmark-circle" slot="end" class="check-icon" *ngIf="asalId === loc.id"></ion-icon>
+          </ion-item>
+          <ion-item *ngIf="!isLoadingLocations && filteredAsalLocations.length === 0" lines="none" class="empty-location-item">
+            <ion-label>
+              <h3>Kota tidak ditemukan</h3>
+              <p>Coba kata kunci lain.</p>
+            </ion-label>
+          </ion-item>
+          <!-- Extra space for bottom scroll -->
+          <div class="modal-bottom-spacer"></div>
+        </ion-list>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <!-- Modal Pilih Kota Tujuan -->
+  <ion-modal 
+    [isOpen]="isTujuanModalOpen" 
+    (didDismiss)="isTujuanModalOpen = false" 
+    mode="ios"
+    animated="true"
+    class="custom-modal">
+    <ng-template>
+      <ion-header class="ion-no-border">
+        <button type="button" class="modal-grip" aria-label="Tutup pilih tujuan" (click)="closeTujuanModal()"></button>
+        <ion-toolbar class="modal-toolbar">
+          <ion-title>Pilih Tujuan</ion-title>
+        </ion-toolbar>
+        <div class="search-bar-wrapper">
+          <ion-searchbar 
+            placeholder="Cari kota tujuan..." 
+            [(ngModel)]="tujuanSearch"
+            (ngModelChange)="updateTujuanFilter($event)"
+            class="modal-searchbar"
+            inputmode="search"
+            debounce="120"
+            animated="true">
+          </ion-searchbar>
+        </div>
+      </ion-header>
+      <ion-content class="ion-padding-top modal-scroll-content" [scrollY]="true">
+        <ion-list lines="none" class="location-list">
+          <ion-item button *ngFor="let loc of filteredTujuanLocations; trackBy: trackByLocationId" (click)="selectTujuan(loc)" class="location-item" detail="false">
+            <div class="location-icon-wrapper">
+              <ion-icon name="location"></ion-icon>
+            </div>
+            <ion-label>
+              <h3>{{ loc.name }}</h3>
+              <p>Terminal / Titik Tujuan</p>
+            </ion-label>
+            <ion-icon name="checkmark-circle" slot="end" class="check-icon" *ngIf="tujuanId === loc.id"></ion-icon>
+          </ion-item>
+          <ion-item *ngIf="!isLoadingLocations && filteredTujuanLocations.length === 0" lines="none" class="empty-location-item">
+            <ion-label>
+              <h3>Kota tidak ditemukan</h3>
+              <p>Coba kata kunci lain.</p>
+            </ion-label>
+          </ion-item>
+          <!-- Extra space for bottom scroll -->
+          <div class="modal-bottom-spacer"></div>
+        </ion-list>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+</ion-content>
+
+<!-- Custom Bottom Navigation -->
+<ion-footer class="custom-footer ion-no-border">
+  <div class="nav-bar material-nav" [style.--slide-distance]="slideDistance">
+    <div class="nav-item active" routerLink="/home" routerDirection="root">
+      <div class="icon-container">
+        <ion-icon name="home"></ion-icon>
+      </div>
+      <span>Beranda</span>
+    </div>
+    <div class="nav-item" routerLink="/tickets" routerDirection="root">
+      <div class="icon-container">
+        <ion-icon name="ticket-outline"></ion-icon>
+      </div>
+      <span>Pesanan</span>
+    </div>
+    <div class="nav-item" routerLink="/promos" routerDirection="root">
+      <div class="icon-container">
+        <ion-icon name="pricetag-outline"></ion-icon>
+      </div>
+      <span>Promo</span>
+    </div>
+    <div class="nav-item" routerLink="/profile" routerDirection="root">
+      <div class="icon-container">
+        <ion-icon name="person-outline"></ion-icon>
+      </div>
+      <span>Profil</span>
+    </div>
+  </div>
+</ion-footer>
