@@ -42,14 +42,14 @@ export class EchoService {
       console.warn('Could not parse environment.apiUrl for wsHost, falling back to 127.0.0.1');
     }
 
-    // Konfigurasi menggunakan Reverb lokal/production
+    /* Konfigurasi menggunakan Reverb lokal/production
     this.echoInstance = new Echo({
       broadcaster: 'reverb',
       key: 'k2n8z9p5q3r7s1t6u5v4', // Sesuai REVERB_APP_KEY di .env backend
       wsHost: wsHostUrl,
-      wsPort: environment.production ? 443 : 8080,
-      wssPort: environment.production ? 443 : 8080,
-      forceTLS: environment.production ? true : false,
+      wsPort: 8080,
+      wssPort: 8080,
+      forceTLS: false,
       enabledTransports: ['ws', 'wss'],
       authEndpoint: `${environment.apiUrl}/broadcasting/auth`,
       auth: {
@@ -58,8 +58,9 @@ export class EchoService {
         }
       }
     });
+    */
 
-    /* Konfigurasi Pusher Cloud sebelumnya:
+    // Konfigurasi Pusher Cloud:
     this.echoInstance = new Echo({
       broadcaster: 'pusher',
       key: '3d489e6e4b5731da6c86', 
@@ -72,7 +73,6 @@ export class EchoService {
         }
       }
     });
-    */
   }
 
   /**
