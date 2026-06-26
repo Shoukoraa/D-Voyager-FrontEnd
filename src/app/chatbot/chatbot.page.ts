@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, NgZone, ChangeDetectorRef } from '@angular/core';
 import { IonContent, ToastController } from '@ionic/angular';
 import { ApiService } from '../services/api.service';
 import { EchoService } from '../services/echo.service';
@@ -34,7 +34,9 @@ export class ChatbotPage implements OnInit {
   constructor(
     private apiService: ApiService,
     private echoService: EchoService,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+    private ngZone: NgZone,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
@@ -565,25 +567,33 @@ export class ChatbotPage implements OnInit {
     
     echo.private(`chat.${this.sessionId}`)
       .listen('.message.sent', (e: any) => {
-        if (e.sender_type !== 'user') {
-          this.messages.push({
-            sender_type: e.sender_type,
-            message_content: e.message_content,
-            timestamp: this.getCurrentTime()
-          });
-          this.scrollToBottom();
-        }
+        this.ngZone.run(() => {
+          if (e.sender_type !== 'user') {
+            this.messages.push({
+              sender_type: e.sender_type,
+              message_content: e.message_content,
+              timestamp: this.getCurrentTime()
+            });
+            this.cdr.detectChanges();
+            this.scrollToBottom();
+          }
+        });
       })
       .listen('.session.status.changed', (e: any) => {
-        if (e.status === 'resolved') {
-          this.appendSystemMsg('Sesi chat ini telah diselesaikan oleh Admin.');
-          this.sessionId = null;
-          echo.leave(`chat.${e.session_id}`);
-          
-          setTimeout(() => {
-            this.resetFlow();
-          }, 3000);
-        }
+        this.ngZone.run(() => {
+          if (e.status === 'resolved') {
+            this.appendSystemMsg('Sesi chat ini telah diselesaikan oleh Admin.');
+            this.sessionId = null;
+            this.cdr.detectChanges();
+            echo.leave(`chat.${e.session_id}`);
+            
+            setTimeout(() => {
+              this.ngZone.run(() => {
+                this.resetFlow();
+              });
+            }, 3000);
+          }
+        });
       });
   }
 
