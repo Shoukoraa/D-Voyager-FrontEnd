@@ -157,12 +157,12 @@ export class DriverChatPage implements OnInit, OnDestroy {
       if (!this.csSessionId) return;
       this.echoService.getEcho()
         .private(`chat.${this.csSessionId}`)
-        .listen('.App\\Events\\MessageSent', (e: any) => {
+        .listen('.message.sent', (e: any) => {
           if (e.sender_type !== 'user') {
             this.chatMessages.push(e);
           }
         })
-        .listen('.App\\Events\\SessionStatusChanged', (e: any) => {
+        .listen('.session.status.changed', (e: any) => {
           if (e.status === 'resolved') {
             this.chatMessages.push({
               sender_type: 'system',
