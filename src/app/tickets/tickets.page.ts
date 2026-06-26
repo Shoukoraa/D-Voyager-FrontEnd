@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, NgZone, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { ToastController, AlertController, Platform } from '@ionic/angular';
 import { ApiService } from '../services/api.service';
@@ -51,7 +51,9 @@ export class TicketsPage implements OnInit, OnDestroy {
     private toastController: ToastController,
     private alertController: AlertController,
     private echoService: EchoService,
-    private platform: Platform
+    private platform: Platform,
+    private ngZone: NgZone,
+    private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit() {
@@ -454,28 +456,37 @@ export class TicketsPage implements OnInit, OnDestroy {
 
     this.echoService.getEcho()
       .private(`chat.${scheduleId}.${customerId}`)
-      .listen('.App\\Events\\DriverCustomerMessageSent', (e: any) => {
-        const isDuplicate = this.chatMessages.some(m => 
-          m.id === e.id || 
-          (!m.id && m.message === e.message && m.sender_type === e.sender_type)
-        );
-        if (!isDuplicate) {
-          this.chatMessages.push(e);
-        } else {
-          const index = this.chatMessages.findIndex(m => !m.id && m.message === e.message && m.sender_type === e.sender_type);
-          if (index !== -1) {
-            this.chatMessages[index] = e;
+      .listen('.driver.customer.message.sent', (e: any) => {
+        this.ngZone.run(() => {
+          const isDuplicate = this.chatMessages.some(m => 
+            m.id === e.id || 
+            (!m.id && m.message === e.message && m.sender_type === e.sender_type)
+          );
+          if (!isDuplicate) {
+            this.chatMessages.push(e);
+          } else {
+            const index = this.chatMessages.findIndex(m => !m.id && m.message === e.message && m.sender_type === e.sender_type);
+            if (index !== -1) {
+              this.chatMessages[index] = e;
+            }
           }
-        }
+          this.cdr.detectChanges();
+        });
       })
       .listenForWhisper('typing', (e: any) => {
-        this.isTyping = true;
-        if (this.typingTimeout) {
-          clearTimeout(this.typingTimeout);
-        }
-        this.typingTimeout = setTimeout(() => {
-          this.isTyping = false;
-        }, 2500);
+        this.ngZone.run(() => {
+          this.isTyping = true;
+          this.cdr.detectChanges();
+          if (this.typingTimeout) {
+            clearTimeout(this.typingTimeout);
+          }
+          this.typingTimeout = setTimeout(() => {
+            this.ngZone.run(() => {
+              this.isTyping = false;
+              this.cdr.detectChanges();
+            });
+          }, 2500);
+        });
       });
   }
 

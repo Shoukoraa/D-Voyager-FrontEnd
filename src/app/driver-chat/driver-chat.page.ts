@@ -188,7 +188,7 @@ export class DriverChatPage implements OnInit, OnDestroy {
     
     this.echoService.getEcho()
       .private(`chat.${this.currentScheduleId}.${this.activeChatCustomer.customer_id}`)
-      .listen('.App\\Events\\DriverCustomerMessageSent', (e: any) => {
+      .listen('.driver.customer.message.sent', (e: any) => {
         this.ngZone.run(() => {
           const isDuplicate = this.chatMessages.some(m => 
             m.id === e.id || 
