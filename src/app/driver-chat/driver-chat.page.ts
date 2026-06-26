@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, NgZone, ChangeDetectorRef } from '@angular/core';
 import { ApiService } from '../services/api.service';
 import { EchoService } from '../services/echo.service';
 
@@ -32,7 +32,9 @@ export class DriverChatPage implements OnInit, OnDestroy {
 
   constructor(
     private apiService: ApiService,
-    private echoService: EchoService
+    private echoService: EchoService,
+    private ngZone: NgZone,
+    private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit() {
@@ -158,20 +160,26 @@ export class DriverChatPage implements OnInit, OnDestroy {
       this.echoService.getEcho()
         .private(`chat.${this.csSessionId}`)
         .listen('.message.sent', (e: any) => {
-          if (e.sender_type !== 'user') {
-            this.chatMessages.push(e);
-          }
+          this.ngZone.run(() => {
+            if (e.sender_type !== 'user') {
+              this.chatMessages.push(e);
+              this.cdr.detectChanges();
+            }
+          });
         })
         .listen('.session.status.changed', (e: any) => {
-          if (e.status === 'resolved') {
-            this.chatMessages.push({
-              sender_type: 'system',
-              message_content: 'Sesi chat ini telah diselesaikan oleh Admin.',
-              created_at: new Date().toISOString()
-            });
-            this.csSessionId = null;
-            this.echoService.getEcho().leave(`chat.${e.session_id}`);
-          }
+          this.ngZone.run(() => {
+            if (e.status === 'resolved') {
+              this.chatMessages.push({
+                sender_type: 'system',
+                message_content: 'Sesi chat ini telah diselesaikan oleh Admin.',
+                created_at: new Date().toISOString()
+              });
+              this.cdr.detectChanges();
+              this.csSessionId = null;
+              this.echoService.getEcho().leave(`chat.${e.session_id}`);
+            }
+          });
         });
       return;
     }
@@ -181,27 +189,36 @@ export class DriverChatPage implements OnInit, OnDestroy {
     this.echoService.getEcho()
       .private(`chat.${this.currentScheduleId}.${this.activeChatCustomer.customer_id}`)
       .listen('.App\\Events\\DriverCustomerMessageSent', (e: any) => {
-        const isDuplicate = this.chatMessages.some(m => 
-          m.id === e.id || 
-          (!m.id && m.message === e.message && m.sender_type === e.sender_type)
-        );
-        if (!isDuplicate) {
-          this.chatMessages.push(e);
-        } else {
-          const index = this.chatMessages.findIndex(m => !m.id && m.message === e.message && m.sender_type === e.sender_type);
-          if (index !== -1) {
-            this.chatMessages[index] = e;
+        this.ngZone.run(() => {
+          const isDuplicate = this.chatMessages.some(m => 
+            m.id === e.id || 
+            (!m.id && m.message === e.message && m.sender_type === e.sender_type)
+          );
+          if (!isDuplicate) {
+            this.chatMessages.push(e);
+          } else {
+            const index = this.chatMessages.findIndex(m => !m.id && m.message === e.message && m.sender_type === e.sender_type);
+            if (index !== -1) {
+              this.chatMessages[index] = e;
+            }
           }
-        }
+          this.cdr.detectChanges();
+        });
       })
       .listenForWhisper('typing', (e: any) => {
-        this.isTyping = true;
-        if (this.typingTimeout) {
-          clearTimeout(this.typingTimeout);
-        }
-        this.typingTimeout = setTimeout(() => {
-          this.isTyping = false;
-        }, 2500);
+        this.ngZone.run(() => {
+          this.isTyping = true;
+          this.cdr.detectChanges();
+          if (this.typingTimeout) {
+            clearTimeout(this.typingTimeout);
+          }
+          this.typingTimeout = setTimeout(() => {
+            this.ngZone.run(() => {
+              this.isTyping = false;
+              this.cdr.detectChanges();
+            });
+          }, 2500);
+        });
       });
   }
 
