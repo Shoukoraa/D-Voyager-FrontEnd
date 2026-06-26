@@ -14,7 +14,7 @@ interface ChatMessage {
   selector: 'app-chatbot',
   templateUrl: './chatbot.page.html',
   styleUrls: ['./chatbot.page.scss'],
-  standalone: false,
+  standalone: false
 })
 export class ChatbotPage implements OnInit {
   @ViewChild('chatContent') chatContent!: IonContent;
@@ -564,7 +564,7 @@ export class ChatbotPage implements OnInit {
     const echo = this.echoService.getEcho();
     
     echo.private(`chat.${this.sessionId}`)
-      .listen('.App\\Events\\MessageSent', (e: any) => {
+      .listen('.message.sent', (e: any) => {
         if (e.sender_type !== 'user') {
           this.messages.push({
             sender_type: e.sender_type,
@@ -574,7 +574,7 @@ export class ChatbotPage implements OnInit {
           this.scrollToBottom();
         }
       })
-      .listen('.App\\Events\\SessionStatusChanged', (e: any) => {
+      .listen('.session.status.changed', (e: any) => {
         if (e.status === 'resolved') {
           this.appendSystemMsg('Sesi chat ini telah diselesaikan oleh Admin.');
           this.sessionId = null;
